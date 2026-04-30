@@ -5,14 +5,14 @@ services:
     container_name: mysql-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: contact_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USERNAME}", "-p${DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,17 +26,11 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
-     SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/contact_db
-     SPRING_DATASOURCE_USERNAME: sqladmin@contact-app
-     SPRING_DATASOURCE_PASSWORD: Umarfarook@23
-     DB_HOST: mysql-db
-     DB_PORT: 3306
-     DB_USER: root
-     DB_PASSWORD: root
-     DB_NAME: contact_db
-     JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-     JWT_EXPIRATION: 1h
+      DB_HOST: mysql-db     
+      DB_USE_SSL: "false"    
 
 volumes:
   mysql_data:
