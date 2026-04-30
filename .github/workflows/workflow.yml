@@ -125,3 +125,25 @@ jobs:
         with:
           app-name: Contact-app
           images: ${{ secrets.DOCKER_USERNAME }}/contact-app:${{ github.sha }}
+
+  deploy-aks:
+    name: Deploy to AKS
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    if: github.ref == 'refs/heads/prod' || github.ref == 'refs/heads/develop'
+  
+    steps:
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+
+      - name: Deploy to AKS
+        run: |
+          kubectl set image deployment/contact-app \
+            contact-app=${{ secrets.DOCKER_USERNAME }}/contact-app:${{ github.sha }} \
+            -n contact-app
+          kubectl rollout status deployment/contact-app -n contact-app
